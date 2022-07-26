@@ -1,4 +1,12 @@
-function [h, pval, outliers] = chow_test(x,y,start,palpha,h,pval,outliers)    
+function [h, pval, outliers] = chow_test(x,y,start,palpha,h,pval,outliers)
+%CHOW_TEST Chow statistical test.
+% Performs a statistical test to identify the range over which the data
+% provided follows a linear response.
+%
+% Author: Antoine Hilhorst
+%
+% See also LIN_REG_2D
+
     xtmp = x;
     ytmp = y;
 

@@ -1,27 +1,41 @@
-function [pyu, pyl, p, y, rsq_adj, rpearson, resid, tresid, ser] = lin_reg_2d(ewf1,yo,x,alpha)
-    p = polyfit(ewf1,yo,1);
+function [p, y, ci, pi, values] = lin_reg_2d(x_data,y_data,x,alpha)
+%LIN_REG_2D Simple linear regression.
+% Computes the simple linear regression of (x_data,y_data), the confidence
+% and prediction interval with p-value alpha over the range x, as well as
+% useful values to analyse the regression.
+%
+% Author: Antoine Hilhorst
+%
+% See also CHOW_TEST
+
+    p = polyfit(x_data,y_data,1);
     y = polyval(p,x);    
-    yf = polyval(p, ewf1);
-    N = length(yo);
-    resid = yo-yf;
+    yf = polyval(p, x_data);
+    N = length(y_data);
+    resid = y_data-yf;
     SSresid = sum(resid.^2)/(N-2);
     ser = sqrt(SSresid);
-    SStot = (N-1)*var(yo);
-%     rsq = 1 - (N-2)*SSresid/SStot;
-    rsq_adj = 1 - (N-2)^2*SSresid/SStot/(N-1); % is it the correct formula?
-%     rsq_adj = 1 - (N-1)*SSresid/SStot;
-    tresid = resid./(sqrt(SSresid*(1-(1/N+(ewf1-mean(ewf1)).^2/sum((ewf1-mean(ewf1)).^2)))));
-    rpearson = (sum(ewf1.*yo)-N*mean(ewf1)*mean(yo))/(sqrt(sum((ewf1-mean(ewf1)).^2))*sqrt(sum((yo-mean(yo)).^2)));
+    SStot = (N-1)*var(y_data);
+    rsq_adj = 1 - (N-2)^2*SSresid/SStot/(N-1); 
+    tresid = resid./(sqrt(SSresid*(1-(1/N+(x_data-mean(x_data)).^2/sum((x_data-mean(x_data)).^2)))));
+    rpearson = (sum(x_data.*y_data)-N*mean(x_data)*mean(y_data))/(sqrt(sum((x_data-mean(x_data)).^2))*sqrt(sum((y_data-mean(y_data)).^2)));
     
     % confidence intervals
-    pyu = p(2)+tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/N+((x-mean(ewf1)).^2/sum((ewf1-mean(ewf1)).^2))))+...
-        (p(1)+tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/sum((ewf1-mean(ewf1)).^2))))*x;
-    pyl = p(2)-tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/N+((x-mean(ewf1)).^2/sum((ewf1-mean(ewf1)).^2))))+...
-        (p(1)-tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/sum((ewf1-mean(ewf1)).^2))))*x;
+    ci = [p(2)+tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/N+((x-mean(x_data)).^2/sum((x_data-mean(x_data)).^2))))+...
+        (p(1)+tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/sum((x_data-mean(x_data)).^2))))*x;
+        p(2)-tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/N+((x-mean(x_data)).^2/sum((x_data-mean(x_data)).^2))))+...
+        (p(1)-tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/sum((x_data-mean(x_data)).^2))))*x];
     
     % prediction intervals
-%     pyu = p(2)+tinv(1-alpha/200,N-2)*sqrt(SSresid*(1+1/N+((x-mean(ewf1)).^2/sum((ewf1-mean(ewf1)).^2))))+...
-%         (p(1)+tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/sum((ewf1-mean(ewf1)).^2))))*x;
-%     pyl = p(2)-tinv(1-alpha/200,N-2)*sqrt(SSresid*(1+1/N+((x-mean(ewf1)).^2/sum((ewf1-mean(ewf1)).^2))))+...
-%         (p(1)-tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/sum((ewf1-mean(ewf1)).^2))))*x;
+    pi = [p(2)+tinv(1-alpha/200,N-2)*sqrt(SSresid*(1+1/N+((x-mean(x_data)).^2/sum((x_data-mean(x_data)).^2))))+...
+        (p(1)+tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/sum((x_data-mean(x_data)).^2))))*x;
+        p(2)-tinv(1-alpha/200,N-2)*sqrt(SSresid*(1+1/N+((x-mean(x_data)).^2/sum((x_data-mean(x_data)).^2))))+...
+        (p(1)-tinv(1-alpha/200,N-2)*sqrt(SSresid*(1/sum((x_data-mean(x_data)).^2))))*x];
+
+    %% output values of interest
+    values.rsq_adj = rsq_adj;
+    values.rpearson = rpearson;
+    values.resid = resid;
+    values.tresid = tresid;
+    values.ser = ser;
 end
